@@ -5,8 +5,16 @@ const handlebars = require("express-handlebars").engine;
 const app = express()
 const path = require('path');
 
+const route = require('./routes')
+
 //HTTP Logger
 app.use(morgan('combined'))
+
+//Minddleware khi POST
+app.use(express.urlencoded({
+  extended : true
+}))//XMHL từ input
+app.use(express.json())//gửi từ code js - json
 
 //Static file: Nạp file tĩnh 
 app.use(express.static(path.join(__dirname, 'public')))//__dirname -> src
@@ -16,11 +24,7 @@ app.engine('hbs', handlebars({extname: '.hbs'}));
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'resources\\views'));
 
-app.get('/', function (req, res) {
-  res.render('home');
-})
+// Routes init
+route(app)
 
-app.get('/news', function (req, res) {
-  res.render('news');
-})
 app.listen(3000)
