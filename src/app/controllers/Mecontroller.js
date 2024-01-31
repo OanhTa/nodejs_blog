@@ -1,14 +1,13 @@
 const Course = require('../models/Course');
 const { mutipleMongooseToObject } = require('../../util/mongoose')
 
-class SiteController {
-    // [GET] /news
-    async index(req, res, next) {
-
+class MeController {
+    // [GET] /me/stored/courses
+    async storedCourses(req, res) {
         try {
             let courses = await Course.find({});
         
-            res.render('home', 
+            res.render('me/storedCourses',  
             { 
                 courses: mutipleMongooseToObject(courses)  //chuyển mảng thành object
             });
@@ -17,11 +16,7 @@ class SiteController {
         }
     }
 
-    // [GET] /search
-    search(req, res) {
-        res.render('search');
-    }
 }
 
-module.exports = new SiteController();
+module.exports = new MeController();
 // Tạo ra một đối tượng của NewsController và xuất ra ngoài
