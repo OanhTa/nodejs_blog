@@ -3,8 +3,8 @@ const { mongooseToObject } = require('../../util/mongoose')
 
 class Coursescontroller {
     // [GET] /courses/:slug
-    show(req, res, next) {
-        Course.findOne({ slug: req.params.slug})
+    async show(req, res, next) {
+        await Course.findOne({ slug: req.params.slug})
         .then(course =>
             res.render('courses/show', { course: mongooseToObject(course) })
         )
@@ -18,20 +18,17 @@ class Coursescontroller {
 
     // [POST] /courses/store
     store(req, res, next){
-        const formData = req.body;
-        formData.image = `https://img.youtube.com/vi/${formData.videoID}/hqdefault.jpg`;
-        
-        const course = new Course(formData)
-        course.save()
-            .then(()=> res.redirect('/'))
-            .catch(error=>{
-                
-            })
+        req.body.img = `https://img.youtube.com/vi/${req.body.videoID}/hqdefault.jpg`;
+        const course = new Course(req.body);
+        course
+            .save()
+            .then(()=> res.redirect('/me/stored/courses'))
+            .catch(next)            
     }
 
     // [GET] /courses/:id/edit
-    edit(req, res, next){
-        Course.findById(req.params.id)
+    async edit(req, res, next){
+        await Course.findById(req.params.id)
             .then((course) => res.render('courses/edit', {
                 course: mongooseToObject(course)
             }))
@@ -45,11 +42,39 @@ class Coursescontroller {
             .catch(next)
     }
 
-    // [DELETE] /courses/:id
-    async delete(req, res, next){
+    // [DELETE] /courses/:id/force
+    async forceDelete(req, res, next){
         await Course.deleteOne({ _id: req.params.id })
             .then(() => res.redirect('back'))
             .catch(next)
+    }
+
+    // Dùng tư viện moogose-delete - xóa mềm, khôi phục, xóa thật
+    // [DELETE] /courses/:id
+    async delete(req, res, next){
+        await Course.delete({ _id: req.params.id })
+            .then(() => res.redirect('back'))
+            .catch(next)
+    }
+
+    // [PATCH] /courses/:id/restore
+    async restore(req, res, next){
+        await Course.restore({ _id: req.params.id })
+            .then(() => res.redirect('back'))
+            .catch(next)
+    }
+
+    //// [POST] /courses/handle-form-actions
+    async handleFormActions(req, res, next){
+        switch(req.body.action){
+            case 'delete':
+                await Course.delete({ _id: { $in: req.body.courseIds}})
+                    .then(() => res.redirect('back'))
+                    .catch(next)
+                break;
+            default: 
+                res.json({message: 'Action is invalid'})
+        }
     }
 }
 
